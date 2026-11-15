@@ -1,0 +1,16 @@
+[package]
+name = "rizenvuln-auth"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+argon2.workspace = true
+rand.workspace = true
+sha2.workspace = true
+hex.workspace = true
+
+[dev-dependencies]
+wiremock.workspace = true
+tokio.workspace = true

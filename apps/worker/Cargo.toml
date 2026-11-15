@@ -1,0 +1,24 @@
+[package]
+name = "rizenvuln-worker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+sha2.workspace = true
+hex.workspace = true
+url.workspace = true
+anyhow.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+uuid.workspace = true
+rizenvuln-core = { path = "../../crates/core" }
+rizenvuln-config = { path = "../../crates/config" }
+rizenvuln-database = { path = "../../crates/database" }
+rizenvuln-integrations = { path = "../../crates/integrations" }
+rizenvuln-scanner = { path = "../../crates/scanner" }

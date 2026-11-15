@@ -1,0 +1,2548 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "RizenVuln API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/auth/login": {
+      "post": {
+        "summary": "Вход. Требуется Origin, возвращает CSRF token",
+        "operationId": "post__api_v1_auth_login",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "summary": "Завершить сессию",
+        "operationId": "post__api_v1_auth_logout",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "summary": "Текущий пользователь",
+        "operationId": "get__api_v1_auth_me",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/dashboard": {
+      "get": {
+        "summary": "Чтение dashboard",
+        "operationId": "get__api_v1_dashboard",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "summary": "Чтение projects",
+        "operationId": "get__api_v1_projects",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Добавить проект",
+        "operationId": "post__api_v1_projects",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/images": {
+      "get": {
+        "summary": "Чтение images",
+        "operationId": "get__api_v1_images",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Добавить источник",
+        "operationId": "post__api_v1_images",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "project_id": {
+                    "type": "string"
+                  },
+                  "reference": {
+                    "type": "string"
+                  },
+                  "branch": {
+                    "type": "string"
+                  },
+                  "track_commits": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "project_id",
+                  "reference"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/repositories": {
+      "get": {
+        "summary": "Чтение repositories",
+        "operationId": "get__api_v1_repositories",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Добавить источник",
+        "operationId": "post__api_v1_repositories",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "project_id": {
+                    "type": "string"
+                  },
+                  "reference": {
+                    "type": "string"
+                  },
+                  "branch": {
+                    "type": "string"
+                  },
+                  "track_commits": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "project_id",
+                  "reference"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/vulnerabilities": {
+      "get": {
+        "summary": "Чтение vulnerabilities",
+        "operationId": "get__api_v1_vulnerabilities",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "image_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "environment",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/sbom": {
+      "get": {
+        "summary": "Чтение sbom",
+        "operationId": "get__api_v1_sbom",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/deployments": {
+      "get": {
+        "summary": "Чтение deployments",
+        "operationId": "get__api_v1_deployments",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/updates": {
+      "get": {
+        "summary": "Чтение updates",
+        "operationId": "get__api_v1_updates",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/remediation": {
+      "get": {
+        "summary": "Чтение remediation",
+        "operationId": "get__api_v1_remediation",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "image_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "environment",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/reports": {
+      "get": {
+        "summary": "Чтение reports",
+        "operationId": "get__api_v1_reports",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "summary": "Чтение notifications",
+        "operationId": "get__api_v1_notifications",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/integrations": {
+      "get": {
+        "summary": "Чтение integrations",
+        "operationId": "get__api_v1_integrations",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/settings": {
+      "get": {
+        "summary": "Чтение settings",
+        "operationId": "get__api_v1_settings",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/jobs": {
+      "get": {
+        "summary": "Чтение jobs",
+        "operationId": "get__api_v1_jobs",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fix_available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "kev",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "min_epss",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/images/{id}/scan": {
+      "post": {
+        "summary": "Поставить сканирование в очередь",
+        "operationId": "post__api_v1_images_id_scan",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/remediation/{id}": {
+      "patch": {
+        "summary": "Сменить статус с записью истории",
+        "operationId": "patch__api_v1_remediation_id",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sbom/{id}": {
+      "get": {
+        "summary": "Скачать исходный документ JSON",
+        "operationId": "get__api_v1_sbom_id",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/updates/{id}/approve": {
+      "post": {
+        "summary": "Одобрить версию (не развёртывает)",
+        "operationId": "post__api_v1_updates_id_approve",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "environment": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "environment"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/test": {
+      "post": {
+        "summary": "Поставить тест Telegram в очередь",
+        "operationId": "post__api_v1_notifications_test",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/integrations/harbor/projects": {
+      "get": {
+        "summary": "Проекты Harbor",
+        "operationId": "get__api_v1_integrations_harbor_projects",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      }
+    },
+    "/api/v1/integrations/harbor/monitor": {
+      "post": {
+        "summary": "Выбрать проект Harbor",
+        "operationId": "post__api_v1_integrations_harbor_monitor",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "project_id": {
+                    "type": "string"
+                  },
+                  "harbor_project": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "project_id",
+                  "harbor_project"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/health/live": {
+      "get": {
+        "summary": "Проверка состояния",
+        "operationId": "get__health_live",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": []
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "summary": "Проверка состояния",
+        "operationId": "get__health_ready",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": []
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Prometheus. Bearer METRICS_TOKEN",
+        "operationId": "get__metrics",
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректный запрос"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          },
+          "409": {
+            "description": "Конфликт"
+          }
+        },
+        "security": [
+          {
+            "metrics": []
+          }
+        ]
+      }
+    },
+    "/api/v1/sbom/{id}/packages": {
+      "get": {
+        "summary": "Пакеты SBOM",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректные данные"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/sbom/compare": {
+      "get": {
+        "summary": "Сравнение состава SBOM",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректные данные"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          }
+        },
+        "parameters": [
+          {
+            "name": "left",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "right",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/openapi.json": {
+      "get": {
+        "summary": "OpenAPI specification",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректные данные"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          }
+        }
+      }
+    },
+    "/api/v1/settings/users": {
+      "get": {
+        "summary": "Пользователи (admin)",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректные данные"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          }
+        }
+      },
+      "post": {
+        "summary": "Создать пользователя (admin)",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректные данные"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  },
+                  "role": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password",
+                  "role"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/settings/users/{id}/password": {
+      "post": {
+        "summary": "Сменить пароль и отозвать сессии",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректные данные"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/notifications/rules": {
+      "get": {
+        "summary": "Правила уведомлений",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректные данные"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          }
+        }
+      },
+      "post": {
+        "summary": "Включить/выключить событие",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успех"
+          },
+          "400": {
+            "description": "Некорректные данные"
+          },
+          "401": {
+            "description": "Требуется вход"
+          },
+          "403": {
+            "description": "Недостаточно прав / CSRF"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "event": {
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "event",
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "rv_session"
+      },
+      "metrics": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

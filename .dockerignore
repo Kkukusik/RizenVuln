@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+!.env.example
+target
+**/node_modules
+frontend/dist
+*.pem
+*.key
+*.dump
+.idea
+
+**/__pycache__
+*.pyc

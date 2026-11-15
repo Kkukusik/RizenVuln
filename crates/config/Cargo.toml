@@ -1,0 +1,13 @@
+[package]
+name = "rizenvuln-config"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+wiremock.workspace = true
+tokio.workspace = true
