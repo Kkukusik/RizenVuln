@@ -18,11 +18,9 @@ export async function api<T>(path: string, method = 'GET', body?: unknown): Prom
       body: JSON.stringify(body)
     })
   });
-  const data = await response.json().catch(() => ({
-    error: {
-      message: 'Некорректный ответ сервера'
-    }
-  }));
+  const data = await response.json().catch(() => {
+    throw new ApiError(response.ok ? 502 : response.status, 'Некорректный ответ сервера');
+  });
   if (!response.ok) throw new ApiError(response.status, data.error?.message ?? `Ошибка HTTP ${response.status}`);
   if (data.csrf_token) {
     csrf = data.csrf_token;

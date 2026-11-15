@@ -351,13 +351,23 @@ async fn persist(
     Ok(())
 }
 async fn artifact(pool: &PgPool, run: Uuid, format: &str, document: Value) -> Result<()> {
+    artifact_with_upload(pool, run, format, document, enabled("S3_ENABLED", false)).await
+}
+async fn artifact_with_upload(
+    pool: &PgPool,
+    run: Uuid,
+    format: &str,
+    document: Value,
+    upload_enabled: bool,
+) -> Result<()> {
     use sha2::{Digest, Sha256};
     let bytes = serde_json::to_vec(&document)?;
     let id = Uuid::new_v4();
     let key = format!("reports/{run}/{format}.json");
     let mut tx = pool.begin().await?;
-    sqlx::query("INSERT INTO sbom_artifacts(id,scan_run_id,format,object_key,sha256,document,storage_status) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(scan_run_id,format) DO NOTHING").bind(id).bind(run).bind(format).bind(&key).bind(hex::encode(Sha256::digest(&bytes))).bind(document).bind(if enabled("S3_ENABLED",false){"PENDING"}else{"LOCAL_ONLY"}).execute(&mut *tx).await?;
-    if enabled("S3_ENABLED", false) {
+    let inserted: Option<Uuid> = sqlx::query_scalar("INSERT INTO sbom_artifacts(id,scan_run_id,format,object_key,sha256,document,storage_status) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(scan_run_id,format) DO NOTHING RETURNING id").bind(id).bind(run).bind(format).bind(&key).bind(hex::encode(Sha256::digest(&bytes))).bind(document).bind(if upload_enabled{"PENDING"}else{"LOCAL_ONLY"}).fetch_optional(&mut *tx).await?;
+    // A retry must not queue an upload for the fresh UUID rejected by ON CONFLICT.
+    if upload_enabled && inserted.is_some() {
         sqlx::query("INSERT INTO jobs(id,kind,payload,dedup_key) VALUES($1,'upload',$2,$3) ON CONFLICT(dedup_key) WHERE status IN ('PENDING','RUNNING') DO NOTHING").bind(Uuid::new_v4()).bind(json!({"artifact_id":id})).bind(format!("upload:{id}")).execute(&mut *tx).await?;
     }
     tx.commit().await?;
@@ -562,4 +572,149 @@ async fn intelligence(pool: &PgPool) -> Result<()> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    mod support {
+        include!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../tests/support.rs"
+        ));
+    }
+    #[tokio::test]
+    #[ignore = "requires isolated rvtest_* PostgreSQL; scripts/test-integration.py"]
+    async fn rescans_preserve_decisions_but_reopen_unverified_fixes() {
+        let db = support::TestDatabase::new().await;
+        let project = Uuid::new_v4();
+        let image = Uuid::new_v4();
+        sqlx::query("INSERT INTO projects(id,name) VALUES($1,'worker fixture')")
+            .bind(project)
+            .execute(&db.pool)
+            .await
+            .unwrap();
+        sqlx::query("INSERT INTO images(id,project_id,reference,registry) VALUES($1,$2,'nginx:1','registry-1.docker.io')").bind(image).bind(project).execute(&db.pool).await.unwrap();
+        let statuses = [
+            "NEW",
+            "IN_PROGRESS",
+            "RISK_ACCEPTED",
+            "FALSE_POSITIVE",
+            "FIXED",
+            "PENDING_VERIFICATION",
+        ];
+        let findings: Vec<_> = statuses
+            .iter()
+            .enumerate()
+            .map(|(i, _)| rizenvuln_core::Finding {
+                cve: format!("CVE-TEST-{i}"),
+                package: format!("package-{i}"),
+                installed: "1".into(),
+                fixed: "2".into(),
+                severity: "HIGH".into(),
+                title: "test".into(),
+                target: "os".into(),
+            })
+            .collect();
+        let first = Uuid::new_v4();
+        sqlx::query("INSERT INTO scan_runs(id,image_id,status,started_at) VALUES($1,$2,'RUNNING',now()-interval '1 hour')").bind(first).bind(image).execute(&db.pool).await.unwrap();
+        persist(&db.pool, first, image, &findings, "test", json!({}), 0.1)
+            .await
+            .unwrap();
+        for (f, status) in findings.iter().zip(statuses) {
+            sqlx::query("UPDATE vulnerability_findings SET status=$1 WHERE scan_run_id=$2 AND vulnerability_id=$3").bind(status).bind(first).bind(&f.cve).execute(&db.pool).await.unwrap();
+        }
+        let second = Uuid::new_v4();
+        sqlx::query("INSERT INTO scan_runs(id,image_id,status) VALUES($1,$2,'RUNNING')")
+            .bind(second)
+            .bind(image)
+            .execute(&db.pool)
+            .await
+            .unwrap();
+        let mut duplicates = findings.clone();
+        duplicates.push(findings[0].clone());
+        persist(
+            &db.pool,
+            second,
+            image,
+            &duplicates,
+            "test",
+            json!({"db":"fixture"}),
+            0.2,
+        )
+        .await
+        .unwrap();
+        let actual:Vec<String>=sqlx::query_scalar("SELECT status FROM vulnerability_findings WHERE scan_run_id=$1 ORDER BY vulnerability_id").bind(second).fetch_all(&db.pool).await.unwrap();
+        assert_eq!(
+            actual,
+            [
+                "NEW",
+                "IN_PROGRESS",
+                "RISK_ACCEPTED",
+                "FALSE_POSITIVE",
+                "NEW",
+                "NEW"
+            ]
+        );
+        assert_eq!(
+            sqlx::query_scalar::<_, i64>(
+                "SELECT count(*) FROM vulnerability_findings WHERE scan_run_id=$1"
+            )
+            .bind(first)
+            .fetch_one(&db.pool)
+            .await
+            .unwrap(),
+            6
+        );
+        let row: (String, String) =
+            sqlx::query_as("SELECT status,scanner_version FROM scan_runs WHERE id=$1")
+                .bind(second)
+                .fetch_one(&db.pool)
+                .await
+                .unwrap();
+        assert_eq!(row, ("COMPLETED".into(), "test".into()));
+        let document = json!({"components":[{"name":"fixture","version":"1"}]});
+        artifact_with_upload(&db.pool, second, "cyclonedx-json", document.clone(), true)
+            .await
+            .unwrap();
+        artifact_with_upload(&db.pool, second, "cyclonedx-json", document, true)
+            .await
+            .unwrap();
+        let jobs: Vec<Uuid> = sqlx::query_scalar(
+            "SELECT (payload->>'artifact_id')::uuid FROM jobs WHERE kind='upload'",
+        )
+        .fetch_all(&db.pool)
+        .await
+        .unwrap();
+        let artifact_id: Uuid =
+            sqlx::query_scalar("SELECT id FROM sbom_artifacts WHERE scan_run_id=$1")
+                .bind(second)
+                .fetch_one(&db.pool)
+                .await
+                .unwrap();
+        assert_eq!(
+            jobs,
+            vec![artifact_id],
+            "artifact retry must not enqueue nonexistent artifacts"
+        );
+        db.close().await;
+    }
+    #[test]
+    fn invalid_job_payload_is_rejected() {
+        for payload in [
+            json!({}),
+            json!({"image_id":42}),
+            json!({"image_id":"not-a-uuid"}),
+        ] {
+            let job = Job {
+                id: Uuid::new_v4(),
+                kind: "image".into(),
+                payload,
+                attempts: 1,
+                max_attempts: 5,
+                lease_token: None,
+            };
+            assert!(id(&job, "image_id").is_err());
+        }
+    }
 }

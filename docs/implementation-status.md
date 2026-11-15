@@ -1,8 +1,10 @@
 # Фактическое состояние реализации
 
-Дата: 2026-11-13. **Проект НЕ признан готовым к первоначальной эксплуатации.**
-Реализован значительный объём начальной версии, Rust собирается; end-to-end
-проверка, frontend build и приёмочные критерии запуска не подтверждены.
+Дата обновления: 2026-11-15. **Проект ещё не прошёл полную эксплуатационную приёмку.**
+Сборка, автоматические проверки и изолированные API/PostgreSQL/браузерные сценарии
+описаны в последних разделах ниже. Ранние таблицы отражают исторические ограничения
+среды 2026-11-13 и не являются текущими результатами. Внешние интеграции и реальный
+Trivy требуют отдельной приёмки. Матрица покрытия: [testing.md](testing.md).
 
 ## Создано
 
@@ -166,3 +168,15 @@ RIZENVULN_ENV_FILE=.env.example docker compose --env-file .env.example config -q
 - npm ci, npm run build и npm run test -- --run прошли, 10 frontend-тестов. npm сообщил о трёх уязвимостях зависимостей (1 moderate, 2 critical); обновление зависимостей в это исправление не входит. Сборка также предупреждает о JS chunk больше 500 kB.
 - Прежние ограничения доступа к Docker/npm/loopback выше относятся к предыдущей проверке: сейчас Compose доступен, API/Worker/PostgreSQL запущены. Секреты не изменялись и не выводились; история сканирований сохранена.
 - API пересобран через docker compose build и пересоздан через docker compose up -d --no-deps rizenvuln-api. На работающем API проверены данные из .env: login 200, /auth/me 200 с ролью admin, logout 200, отозванная сессия 401, /health/ready 200. Все три сервиса healthy. Проверка HTTP выполнена внутри API-контейнера; браузерный вход отдельно не проверялся. Для текущего PUBLIC_BASE_URL открывать http://localhost:8080 (другой Origin будет отклонён).
+
+### Расширение автотестов и GitHub Actions 2026-11-15
+
+- Полный `./scripts/check.sh` прошёл: fmt, Clippy с -D warnings, 40 обычных Rust-тестов, 15 PostgreSQL integration tests (запущены явно, без пропуска), 13 Vitest, 9 Python unittest и 2 Chromium/Playwright сценария. Всего 79 тестов; subprocess-варианты конфигурации и параметризованные сценарии внутри них отдельно не суммируются. Сборка frontend и Compose config также прошли.
+- Тестовый runner создаёт собственную временную PostgreSQL в отдельном Compose project с данными в tmpfs и удаляет её после успеха/ошибки. API/DB/Worker fixtures работают в отдельных схемах, включая прежние DB tests; разрешён только TEST_DATABASE_URL с именем БД rvtest_*. Рабочие .env, БД, volumes и контейнеры не используются.
+- Покрыты auth/session/password reset/Origin/CSRF/RBAC, все документированные закрытые API routes без сессии, source creation/validation/lists, CVE latest-successful scan/filter/history, SBOM/diff, approval, notifications/dedup, metrics/health, invalid/oversized requests, queue concurrency/lease fencing/retry/exhaustion, scheduler и scan persistence. Добавлены проверки конфигурации в subprocess и HTTP redirect/retry/SSRF/error cases.
+- Scanner проверяется executable fixture: протокол трёх форматов, version, nonzero exit, malformed/incomplete JSON, timeout, удаление временных файлов, ограничение документа. Это не реальный Trivy и не проверка его CVE DB.
+- Chromium работает с настоящим временным API/PostgreSQL: login, создание проекта/образа/GitHub source, обновление страницы, все разделы, создание viewer и смена пароля, ограничения viewer и logout. Worker в браузерной фикстуре не запускается: внешние источники не опрашиваются.
+- Найдены и исправлены три ошибки: SPA reload возвращал 404 и JSON вместо index.html; повторная запись artifact ставила S3 job для UUID, отклонённого ON CONFLICT; frontend принимал невалидный JSON успешного ответа за данные. Все три сценария имеют регрессионные тесты.
+- .gitlab-ci.yml удалён. .github/workflows/test.yml настроен на push/pull_request/manual: Rust/Python/DB/Chromium, frontend и сборка Compose images. Локальная проверка YAML выполнена; результат запуска на GitHub фиксируется отдельно и не подменяется локальным успехом.
+- Подробная матрица и команды: docs/testing.md. 100% покрытия и гарантия отсутствия ошибок не заявляются. Внешние Harbor/S3/Telegram/Docker/Kubernetes/GitHub/KEV/EPSS, настоящий Trivy, длительная нагрузка и аварии инфраструктуры требуют отдельной приёмки. Предупреждения npm audit и размера JS chunk из предыдущей проверки сохраняются.
+- Рабочие сервисы оставлены на прежних образах: новые изменения приложения из этого раздела требуют последующей пересборки/обновления Compose. Во время тестов рабочая история сканирований не изменялась.

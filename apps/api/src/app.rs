@@ -214,11 +214,12 @@ pub fn router(state: State) -> Router {
         .route("/health/ready", get(ready))
         .route("/metrics", get(metrics))
         .fallback_service(
-            ServeDir::new(rizenvuln_config::value("FRONTEND_DIR", "frontend/dist"))
-                .not_found_service(ServeFile::new(format!(
+            ServeDir::new(rizenvuln_config::value("FRONTEND_DIR", "frontend/dist")).fallback(
+                ServeFile::new(format!(
                     "{}/index.html",
                     rizenvuln_config::value("FRONTEND_DIR", "frontend/dist")
-                ))),
+                )),
+            ),
         )
         .layer(DefaultBodyLimit::max(1024 * 1024))
         .layer(middleware::from_fn(security))

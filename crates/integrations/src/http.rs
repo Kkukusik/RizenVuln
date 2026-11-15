@@ -172,3 +172,104 @@ mod tests {
             .is_err());
     }
 }
+
+#[cfg(test)]
+mod reliability_tests {
+    use super::*;
+    use wiremock::{matchers::path, Mock, MockServer, ResponseTemplate};
+    #[tokio::test]
+    async fn redirects_are_not_followed() {
+        let destination = MockServer::start().await;
+        Mock::given(path("/private"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(serde_json::json!({"leaked":true})),
+            )
+            .expect(0)
+            .mount(&destination)
+            .await;
+        let source = MockServer::start().await;
+        Mock::given(path("/redirect"))
+            .respond_with(
+                ResponseTemplate::new(302)
+                    .insert_header("Location", format!("{}/private", destination.uri())),
+            )
+            .expect(1)
+            .mount(&source)
+            .await;
+        let http = Http::mock(&source.uri());
+        assert!(retry_get(&http, http.url("/redirect").unwrap(), None, None)
+            .await
+            .is_err());
+    }
+    #[tokio::test]
+    async fn rejects_oversized_invalid_and_error_responses() {
+        let server = MockServer::start().await;
+        for (p, status, body) in [
+            ("/large", 200, "x".repeat(100)),
+            ("/invalid", 200, "not-json".into()),
+            ("/denied", 401, "denied".into()),
+        ] {
+            Mock::given(path(p))
+                .respond_with(ResponseTemplate::new(status).set_body_string(body))
+                .mount(&server)
+                .await;
+        }
+        let http = Http::mock(&server.uri());
+        let response = http
+            .request(Method::GET, http.url("/large").unwrap())
+            .await
+            .unwrap()
+            .send()
+            .await
+            .unwrap();
+        assert!(bytes_limited(response, 10).await.is_err());
+        for p in ["/invalid", "/denied"] {
+            assert!(retry_get(&http, http.url(p).unwrap(), None, None)
+                .await
+                .is_err());
+        }
+    }
+    #[tokio::test]
+    async fn temporary_errors_retry_but_authentication_errors_do_not() {
+        let server = MockServer::start().await;
+        for status in [429, 503] {
+            let p = format!("/retry-{status}");
+            Mock::given(path(p.clone()))
+                .respond_with(ResponseTemplate::new(status))
+                .expect(3)
+                .mount(&server)
+                .await;
+            let http = Http::mock(&server.uri());
+            assert!(retry_get(&http, http.url(&p).unwrap(), None, None)
+                .await
+                .is_err());
+        }
+        Mock::given(path("/auth"))
+            .respond_with(ResponseTemplate::new(403))
+            .expect(1)
+            .mount(&server)
+            .await;
+        let http = Http::mock(&server.uri());
+        assert!(retry_get(&http, http.url("/auth").unwrap(), None, None)
+            .await
+            .is_err());
+    }
+    #[tokio::test]
+    async fn trusted_integrations_still_reject_local_and_metadata_addresses() {
+        for ip in [
+            "127.0.0.1",
+            "0.0.0.0",
+            "169.254.169.254",
+            "100.100.100.200",
+            "[::1]",
+            "[::ffff:127.0.0.1]",
+            "[fd00:ec2::254]",
+        ] {
+            let http = Http::new(&format!("https://{ip}/"), true, None).unwrap();
+            assert!(
+                http.request(Method::GET, http.base.clone()).await.is_err(),
+                "{ip}"
+            );
+        }
+    }
+}

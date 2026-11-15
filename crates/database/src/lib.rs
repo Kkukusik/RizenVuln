@@ -83,6 +83,14 @@ pub struct Project {
     pub created_at: DateTime<Utc>,
 }
 #[cfg(test)]
+mod test_support {
+    use crate as rizenvuln_database;
+    include!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../tests/support.rs"
+    ));
+}
+#[cfg(test)]
 mod tests {
     use super::*;
     #[test]
@@ -94,10 +102,8 @@ mod tests {
     #[tokio::test]
     #[ignore = "requires TEST_DATABASE_URL pointing to a dedicated empty PostgreSQL database"]
     async fn queue_and_dedup() {
-        let pool = connect(&std::env::var("TEST_DATABASE_URL").unwrap())
-            .await
-            .unwrap();
-        migrate(&pool).await.unwrap();
+        let db = test_support::TestDatabase::new().await;
+        let pool = db.pool.clone();
         let key = Uuid::new_v4().to_string();
         enqueue(&pool, "test", serde_json::json!({}), &key)
             .await
@@ -128,5 +134,6 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(n, 1);
+        db.close().await;
     }
 }

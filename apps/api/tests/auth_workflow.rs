@@ -1,3 +1,5 @@
+#[path = "../../../tests/support.rs"]
+mod support;
 use axum::{
     body::{to_bytes, Body},
     http::{Request, StatusCode},
@@ -11,9 +13,8 @@ use uuid::Uuid;
 #[tokio::test]
 #[ignore = "requires dedicated TEST_DATABASE_URL; creates and removes only its own test records"]
 async fn cookie_csrf_rbac_logout_workflow() {
-    let url = std::env::var("TEST_DATABASE_URL").expect("TEST_DATABASE_URL");
-    let pool = rizenvuln_database::connect(&url).await.unwrap();
-    rizenvuln_database::migrate(&pool).await.unwrap();
+    let db = support::TestDatabase::new().await;
+    let pool = db.pool.clone();
     let password = rizenvuln_auth::token();
     let hash = rizenvuln_auth::hash_password(&password).unwrap();
     let admin = Uuid::new_v4();
@@ -31,7 +32,7 @@ async fn cookie_csrf_rbac_logout_workflow() {
             .unwrap();
     }
     let config = Config {
-        database_url: url,
+        database_url: String::new(),
         bind: String::new(),
         public_url: "https://monitor.example.test".into(),
         secure_cookie: true,
@@ -163,4 +164,5 @@ async fn cookie_csrf_rbac_logout_workflow() {
         .execute(&pool)
         .await
         .unwrap();
+    db.close().await;
 }

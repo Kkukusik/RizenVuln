@@ -139,6 +139,10 @@ Telegram не поддерживает idempotency key: при потере от
 TEST_DATABASE_URL='postgres://...' cargo test -p rizenvuln-database -- --ignored
 ```
 
+Полный прогон включает временную PostgreSQL и Chromium через Playwright.
+Изоляция, отдельные команды и матрица сценариев: [docs/testing.md](docs/testing.md).
+GitHub Actions запускает проверки при push и pull request.
+
 HTTP mock tests требуют разрешения открывать loopback TCP-порты.
 Frontend использует `npm ci`, после создания настоящего `package-lock.json`:
 если файл отсутствует, сначала на машине с сетью выполните `cd frontend && npm install`.
